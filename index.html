@@ -47,7 +47,7 @@
           </div>
 
           <div class="board-footer">
-            <p id="selection-label">Select a piece from the editor palette, then click a square.</p>
+            <p id="selection-label">Erase mode active. Click an intersection to remove its piece.</p>
             <p id="move-log-summary">No moves recorded.</p>
           </div>
 
@@ -106,6 +106,12 @@
 
           <section class="card">
             <h2>GIF Export</h2>
+            <div class="inline-fields">
+              <label>
+                End Delay (ms)
+                <input id="end-delay-input" type="number" min="0" step="100" value="1200" />
+              </label>
+            </div>
             <div class="toolbar-group wrap">
               <button id="render-gif" class="primary-button">Render GIF</button>
               <button id="download-gif" disabled>Download GIF</button>

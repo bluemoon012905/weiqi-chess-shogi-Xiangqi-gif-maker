@@ -31,7 +31,7 @@ const state = {
   playbackIndex: 0,
   selectedSquare: null,
   legalTargets: [],
-  paletteSelection: "R",
+  paletteSelection: ".",
   generatedGifBlob: null,
   generatedGifUrl: "",
   previewTimer: null,
@@ -51,6 +51,7 @@ const fenInput = document.querySelector("#fen-input");
 const movesInput = document.querySelector("#moves-input");
 const sideSelect = document.querySelector("#side-select");
 const delayInput = document.querySelector("#delay-input");
+const endDelayInput = document.querySelector("#end-delay-input");
 const gifStatus = document.querySelector("#gif-status");
 const gifPreview = document.querySelector("#gif-preview");
 const playToggleButton = document.querySelector("#play-toggle");
@@ -124,8 +125,8 @@ function buildPalette() {
       renderPalette();
       selectionLabel.textContent =
         piece === "."
-          ? "Erase mode active. Click a square to remove its piece."
-          : `${PIECE_META[piece].label} selected. Click a square to place it.`;
+          ? "Erase mode active. Click an intersection to remove its piece."
+          : `${PIECE_META[piece].label} selected. Click an intersection to place it.`;
     });
 
     paletteElement.append(button);
@@ -298,6 +299,7 @@ function renderStatus() {
 function syncInputsFromState() {
   fenInput.value = boardToFen(state.baseBoard);
   sideSelect.value = state.baseTurn;
+  movesInput.value = state.history.map((move) => move.notation).join(" ");
 }
 
 function handleSquareClick(x, y) {
@@ -347,6 +349,7 @@ function applyEditorAction(x, y) {
   state.history = [];
   state.playbackIndex = 0;
   state.baseTurn = state.turn;
+  state.turn = state.baseTurn;
   render();
 }
 
@@ -975,6 +978,7 @@ function isOnBoard(x, y) {
 
 async function renderGif() {
   const delay = Math.max(100, Number(delayInput.value) || 650);
+  const endDelay = Math.max(0, Number(endDelayInput.value) || 0);
   const frames = buildGifFrames();
   if (!frames.length) {
     window.alert("There are no frames to render.");
@@ -994,8 +998,10 @@ async function renderGif() {
   });
 
   frames.forEach((frame, index) => {
+    const isFirst = index === 0;
+    const isLast = index === frames.length - 1;
     gif.addFrame(frame, {
-      delay: index === 0 ? 900 : delay,
+      delay: isFirst ? 900 : isLast ? delay + endDelay : delay,
       copy: true,
     });
   });
