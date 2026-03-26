@@ -64,6 +64,7 @@ export function mountGo(root) {
                 <label class="toggle-option"><input data-id="show-turn" type="checkbox" /> <span>Show Turn Indicator</span></label>
               </div>
               <p class="helper-copy" data-id="crop-summary">Crop the full board or drag the corner handles directly on the board.</p>
+              <pre data-id="crop-debug" class="go-crop-debug">Crop: full board</pre>
             </section>
           </div>
         </section>
@@ -435,6 +436,7 @@ export function mountGo(root) {
         ? "Drag any highlighted corner on the board to reshape the crop."
         : describeCropSelection()
       : "Crop is off. Enable it and drag the corner handles on the board when needed.";
+    get("crop-debug").textContent = formatCropDebug();
     drawPreview();
   }
 
@@ -545,7 +547,7 @@ export function mountGo(root) {
     const crop = state.crop.enabled ? getCropRect() : null;
     const frames = [];
     for (let index = range.start; index <= range.end; index += 1) {
-      const frameCanvas = createBoardCanvas(720, 720);
+      const frameCanvas = createBoardCanvas(canvas.width, canvas.height);
       drawGoBoard(frameCanvas.getContext("2d"), frameCanvas, getActiveStates()[index] || getActiveStates()[0], {
         theme: GO_THEMES[get("theme-select").value] || GO_THEMES.kaya,
         showCoords: get("show-coords").checked,
@@ -667,6 +669,20 @@ export function mountGo(root) {
   function describeCropSelection() {
     const crop = normalizeCropState();
     return `Crop spans ${crop.x1},${crop.y1} to ${crop.x2},${crop.y2}.`;
+  }
+
+  function formatCropDebug() {
+    if (!state.crop.enabled) {
+      return "Crop: full board";
+    }
+    const crop = normalizeCropState();
+    const rect = getCropRect();
+    const handle = state.crop.dragHandle || "none";
+    return [
+      `Board: (${crop.x1}, ${crop.y1}) -> (${crop.x2}, ${crop.y2})`,
+      `Pixels: x=${rect.x.toFixed(2)} y=${rect.y.toFixed(2)} w=${rect.width.toFixed(2)} h=${rect.height.toFixed(2)}`,
+      `Dragging: ${handle}`,
+    ].join("\n");
   }
 
   function getCropHandles() {
