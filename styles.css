@@ -261,6 +261,8 @@ button:disabled {
 
 .board-xiangqi {
   background: linear-gradient(180deg, #f4dba7, #dbb573);
+  --piece-disc-size: calc(var(--cell-size) * 0.94);
+  --piece-font-size: calc(var(--piece-disc-size) * 0.51);
 }
 
 .mode-shell-xiangqi {
@@ -396,7 +398,7 @@ button:disabled {
 
 .board-coords.files {
   grid-template-columns: repeat(9, 1fr);
-  margin: 0 36px;
+  margin: 0 0 0 36px;
 }
 
 .board-coords.ranks {
