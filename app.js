@@ -3,17 +3,17 @@ const RANKS = ["9", "8", "7", "6", "5", "4", "3", "2", "1", "0"];
 const START_FEN =
   "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w";
 const PIECE_META = {
-  K: { side: "red", glyph: "帅", label: "Red General" },
+  K: { side: "red", glyph: "帥", label: "Red General" },
   A: { side: "red", glyph: "仕", label: "Red Advisor" },
   B: { side: "red", glyph: "相", label: "Red Elephant" },
-  N: { side: "red", glyph: "马", label: "Red Horse" },
+  N: { side: "red", glyph: "馬", label: "Red Horse" },
   R: { side: "red", glyph: "車", label: "Red Chariot" },
   C: { side: "red", glyph: "炮", label: "Red Cannon" },
   P: { side: "red", glyph: "兵", label: "Red Soldier" },
-  k: { side: "black", glyph: "将", label: "Black General" },
+  k: { side: "black", glyph: "將", label: "Black General" },
   a: { side: "black", glyph: "士", label: "Black Advisor" },
   b: { side: "black", glyph: "象", label: "Black Elephant" },
-  n: { side: "black", glyph: "马", label: "Black Horse" },
+  n: { side: "black", glyph: "馬", label: "Black Horse" },
   r: { side: "black", glyph: "車", label: "Black Chariot" },
   c: { side: "black", glyph: "砲", label: "Black Cannon" },
   p: { side: "black", glyph: "卒", label: "Black Soldier" },
@@ -55,6 +55,8 @@ const movesInput = document.querySelector("#moves-input");
 const sideSelect = document.querySelector("#side-select");
 const delayInput = document.querySelector("#delay-input");
 const endDelayInput = document.querySelector("#end-delay-input");
+const showCoordsToggle = document.querySelector("#show-coords-toggle");
+const showTurnIndicatorToggle = document.querySelector("#show-turn-indicator-toggle");
 const gifStatus = document.querySelector("#gif-status");
 const gifPreview = document.querySelector("#gif-preview");
 const playToggleButton = document.querySelector("#play-toggle");
@@ -84,9 +86,9 @@ async function ensureFontsReady() {
   }
 
   await Promise.allSettled([
-    document.fonts.load(`700 32px ${PIECE_FONT_FAMILY}`, "帅"),
+    document.fonts.load(`700 32px ${PIECE_FONT_FAMILY}`, "帥"),
     document.fonts.load(`700 32px ${PIECE_FONT_FAMILY}`, "砲"),
-    document.fonts.load(`700 32px ${RIVER_FONT_FAMILY}`, "楚河"),
+    document.fonts.load(`700 32px ${RIVER_FONT_FAMILY}`, "楚河漢界"),
     document.fonts.load(`600 16px ${UI_FONT_FAMILY}`, "a9"),
   ]);
 }
@@ -1055,25 +1057,30 @@ async function renderGif() {
 function buildGifFrames() {
   let board = cloneBoard(state.baseBoard);
   let turn = state.baseTurn;
-  const frames = [drawBoardFrame(board, turn)];
+  const renderOptions = {
+    showCoords: showCoordsToggle.checked,
+    showTurnIndicator: showTurnIndicatorToggle.checked,
+  };
+  const frames = [drawBoardFrame(board, turn, null, renderOptions)];
 
   state.history.forEach((move) => {
     board = cloneBoard(board);
     board[move.to.y][move.to.x] = board[move.from.y][move.from.x];
     board[move.from.y][move.from.x] = null;
     turn = turn === "w" ? "b" : "w";
-    frames.push(drawBoardFrame(board, turn, move));
+    frames.push(drawBoardFrame(board, turn, move, renderOptions));
   });
 
   return frames;
 }
 
-function drawBoardFrame(board, turn, highlightMove = null) {
+function drawBoardFrame(board, turn, highlightMove = null, renderOptions = {}) {
   const canvas = document.createElement("canvas");
   canvas.width = 720;
   canvas.height = 800;
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   const metrics = getBoardRenderMetrics(canvas.width, canvas.height);
+  const { showCoords = false, showTurnIndicator = false } = renderOptions;
 
   ctx.fillStyle = "#f3e2ba";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1124,18 +1131,20 @@ function drawBoardFrame(board, turn, highlightMove = null) {
   ctx.font = `700 ${metrics.riverFontSize}px ${RIVER_FONT_FAMILY}`;
   ctx.fillStyle = "rgba(35, 24, 21, 0.65)";
   ctx.textAlign = "center";
-  ctx.fillText("楚河", canvas.width / 2 - metrics.riverGap, metrics.originY + 4.55 * metrics.cell);
-  ctx.fillText("汉界", canvas.width / 2 + metrics.riverGap, metrics.originY + 4.55 * metrics.cell);
+  ctx.fillText("楚河", canvas.width / 2 - metrics.riverGap, metrics.originY + 4.68 * metrics.cell);
+  ctx.fillText("漢界", canvas.width / 2 + metrics.riverGap, metrics.originY + 4.68 * metrics.cell);
 
-  ctx.font = `600 ${metrics.coordFontSize}px ${UI_FONT_FAMILY}`;
-  FILES.forEach((file, index) => {
-    ctx.fillText(file, metrics.originX + index * metrics.cell, metrics.topCoordY);
-    ctx.fillText(file, metrics.originX + index * metrics.cell, metrics.bottomCoordY);
-  });
-  RANKS.forEach((rank, index) => {
-    ctx.fillText(rank, metrics.leftCoordX, metrics.originY + index * metrics.cell + metrics.coordOffsetY);
-    ctx.fillText(rank, metrics.rightCoordX, metrics.originY + index * metrics.cell + metrics.coordOffsetY);
-  });
+  if (showCoords) {
+    ctx.font = `600 ${metrics.coordFontSize}px ${UI_FONT_FAMILY}`;
+    FILES.forEach((file, index) => {
+      ctx.fillText(file, metrics.originX + index * metrics.cell, metrics.topCoordY);
+      ctx.fillText(file, metrics.originX + index * metrics.cell, metrics.bottomCoordY);
+    });
+    RANKS.forEach((rank, index) => {
+      ctx.fillText(rank, metrics.leftCoordX, metrics.originY + index * metrics.cell + metrics.coordOffsetY);
+      ctx.fillText(rank, metrics.rightCoordX, metrics.originY + index * metrics.cell + metrics.coordOffsetY);
+    });
+  }
 
   if (highlightMove) {
     drawMoveHighlight(ctx, metrics, highlightMove);
@@ -1151,10 +1160,12 @@ function drawBoardFrame(board, turn, highlightMove = null) {
     }
   }
 
-  ctx.font = `600 ${metrics.statusFontSize}px ${UI_FONT_FAMILY}`;
-  ctx.fillStyle = "#2b1d13";
-  ctx.textAlign = "left";
-  ctx.fillText(`Turn: ${turn === "w" ? "Red" : "Black"}`, metrics.statusX, metrics.statusY);
+  if (showTurnIndicator) {
+    ctx.font = `600 ${metrics.statusFontSize}px ${UI_FONT_FAMILY}`;
+    ctx.fillStyle = "#2b1d13";
+    ctx.textAlign = "left";
+    ctx.fillText(`Turn: ${turn === "w" ? "Red" : "Black"}`, metrics.statusX, metrics.statusY);
+  }
 
   return canvas;
 }

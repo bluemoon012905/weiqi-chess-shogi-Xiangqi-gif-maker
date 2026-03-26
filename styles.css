@@ -234,7 +234,7 @@ button.status-pill {
 }
 
 .board::after {
-  content: "楚河      汉界";
+  content: "楚河      漢界";
   position: absolute;
   z-index: 0;
   left: 50%;
@@ -425,6 +425,23 @@ label {
   display: grid;
   gap: 6px;
   font-size: 0.95rem;
+}
+
+.toggle-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.toggle-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toggle-option input {
+  width: auto;
+  margin: 0;
 }
 
 textarea,
